@@ -5,7 +5,6 @@ using VRC.SDKBase;
 using VRC.SDK3.Video.Components.AVPro;
 using System;
 using VRC.SDK3.StringLoading;
-using VRC.Udon.Common.Enums;
 using VRC.Udon.Common.Interfaces;
 using VRC.SDK3.Data;
 
@@ -14,7 +13,7 @@ namespace Chikuwa.Imgin
     public class ImginLoader : UdonSharpBehaviour
     {
         readonly int MAX_SCREEN_SIZE = 1280;
-        readonly int READ_DELAY_COUNT = 1;
+        readonly float READ_TIME_OFFSET = 0.05f;
         readonly float FRAMERATE = 4f;
         readonly int PADDING_FRAMES = 4;
         public MeshRenderer BackScreen;
@@ -27,7 +26,6 @@ namespace Chikuwa.Imgin
         private RenderTexture _backScreen;
         private ImginBoard[] _boards = Array.Empty<ImginBoard>();
         private int _lastReadIndex;
-        private int _updateCount;
 
         void Start()
         {
@@ -91,23 +89,10 @@ namespace Chikuwa.Imgin
                 return;
             }
 
-            var index = (int)Math.Floor(_backPlayer.GetTime() * FRAMERATE) - PADDING_FRAMES;
-            if (index < 0)
-            {
-                return;
-            }
-            if (index == _lastReadIndex)
-            {
-                _updateCount++;
-            }
-            else
+            var index = (int)Math.Floor((_backPlayer.GetTime() - READ_TIME_OFFSET) * FRAMERATE) - PADDING_FRAMES;
+            if (index >= 0 && _lastReadIndex != index)
             {
                 _lastReadIndex = index;
-                _updateCount = 0;
-            }
-
-            if (_lastReadIndex == index && _updateCount == READ_DELAY_COUNT)
-            {
                 var material = BackScreen.material;
                 foreach (var board in _boards)
                 {
