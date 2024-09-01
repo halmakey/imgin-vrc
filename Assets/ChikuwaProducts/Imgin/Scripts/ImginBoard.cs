@@ -13,21 +13,49 @@ namespace Chikuwa.Imgin
         public ImginLoader ImginLoader;
         public uint Offset;
 
+        private GameObject[] _panels = Array.Empty<GameObject>();
+        private float[] _maxScales = Array.Empty<float>();
         private RenderTexture[] _textures = Array.Empty<RenderTexture>();
 
         void Start()
         {
             var renderers = GetComponentsInChildren<MeshRenderer>();
             _textures = new RenderTexture[renderers.Length];
+            _panels = new GameObject[renderers.Length];
+            _maxScales = new float[renderers.Length];
 
             for (int i = 0; i < renderers.Length; i++)
             {
                 _textures[i] = new RenderTexture(MAX_SCREEN_SIZE, MAX_SCREEN_SIZE, 0);
                 renderers[i].material.mainTexture = _textures[i];
+                _panels[i] = renderers[i].gameObject;
+                _maxScales[i] = Mathf.Min(_panels[i].transform.localScale.x, _panels[i].transform.localScale.y);
+                _panels[i].transform.localScale = Vector3.zero;
             }
             if (ImginLoader != null)
             {
                 ImginLoader.AddBoard(this);
+            }
+        }
+
+        public void ApplyAspectRatios(float[] ratios)
+        {
+            for (int i = 0; i < Math.Min(_panels.Length, ratios.Length - Offset); i++)
+            {
+                var ratio = ratios[Offset + i];
+                var scale = _panels[i].transform.localScale;
+                var maxScale = _maxScales[i];
+                if (ratio < 1f)
+                {
+                    scale.x = maxScale;
+                    scale.y = maxScale * ratio;
+                }
+                else
+                {
+                    scale.x = maxScale / ratio;
+                    scale.y = maxScale;
+                }
+                _panels[i].transform.localScale = scale;
             }
         }
 

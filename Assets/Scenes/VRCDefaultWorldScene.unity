@@ -2290,7 +2290,9 @@ MonoBehaviour:
   _udonSharpBackingUdonBehaviour: {fileID: 720053666}
   BackScreen: {fileID: 7473777739438548220}
   VideoURL:
-    url: https://pub-b767999c13df4a0c8763d04ecfcd69bd.r2.dev/export/2JUTHnAMyNQ-NOlF25N7I/video
+    url: https://pub-b767999c13df4a0c8763d04ecfcd69bd.r2.dev/export/VSr3p-RJnpSJpN1ZI4Awu/video
+  JSONURL:
+    url: https://pub-b767999c13df4a0c8763d04ecfcd69bd.r2.dev/export/VSr3p-RJnpSJpN1ZI4Awu/json
   DelaySeconds: 2
 --- !u!114 &720053668
 MonoBehaviour:

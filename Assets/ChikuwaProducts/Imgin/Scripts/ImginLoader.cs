@@ -4,6 +4,9 @@ using UnityEngine;
 using VRC.SDKBase;
 using VRC.SDK3.Video.Components.AVPro;
 using System;
+using VRC.SDK3.StringLoading;
+using VRC.Udon.Common.Interfaces;
+using VRC.SDK3.Data;
 
 namespace Chikuwa.Imgin
 {
@@ -14,6 +17,8 @@ namespace Chikuwa.Imgin
         readonly float FRAMERATE = 4f;
         public MeshRenderer BackScreen;
         public VRCUrl VideoURL;
+        public VRCUrl JSONURL;
+
         public float DelaySeconds;
 
         private VRCAVProVideoPlayer _backPlayer;
@@ -38,6 +43,7 @@ namespace Chikuwa.Imgin
         {
             _lastReadIndex = -1;
             _backPlayer.PlayURL(VideoURL);
+            VRCStringDownloader.LoadUrl(JSONURL, (IUdonEventReceiver)this);
         }
 
         public void AddBoard(ImginBoard board)
@@ -47,13 +53,38 @@ namespace Chikuwa.Imgin
 
         public override void OnVideoStart()
         {
-            Debug.Log("ImginLoader: Load started.");
+            Debug.Log("Load started.");
             _lastReadIndex = -1;
         }
         public override void OnVideoEnd()
         {
-            Debug.Log("ImginLoader: Load completed.");
+            Debug.Log("Load completed.");
             gameObject.SetActive(false);
+        }
+
+        public override void OnStringLoadSuccess(IVRCStringDownload result)
+        {
+            VRCJson.TryDeserializeFromJson(result.Result, out DataToken images);
+            if (images.TokenType != TokenType.DataList)
+            {
+                Debug.LogError("Invalid JSON format.");
+                return;
+            }
+            float[] ratios = new float[images.DataList.Count];
+            for (int i = 0; i < images.DataList.Count; i++)
+            {
+                var image = images.DataList[i].DataDictionary;
+                ratios[i] = (float)(image["height"].Double / image["width"].Double);
+            }
+            foreach (var board in _boards)
+            {
+                board.ApplyAspectRatios(ratios);
+            }
+        }
+
+        public override void OnStringLoadError(IVRCStringDownload result)
+        {
+            Debug.LogError($"Error loading string: {result.ErrorCode} - {result.Error}");
         }
 
         void LateUpdate()
