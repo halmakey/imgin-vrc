@@ -15,22 +15,24 @@ namespace Chikuwa.Imgin
 
         private GameObject[] _panels = Array.Empty<GameObject>();
         private float[] _maxScales = Array.Empty<float>();
-        private RenderTexture[] _textures = Array.Empty<RenderTexture>();
 
         void Start()
         {
             var renderers = GetComponentsInChildren<MeshRenderer>();
-            _textures = new RenderTexture[renderers.Length];
             _panels = new GameObject[renderers.Length];
             _maxScales = new float[renderers.Length];
 
             for (int i = 0; i < renderers.Length; i++)
             {
-                _textures[i] = new RenderTexture(MAX_SCREEN_SIZE, MAX_SCREEN_SIZE, 0);
-                renderers[i].material.mainTexture = _textures[i];
-                _panels[i] = renderers[i].gameObject;
-                _maxScales[i] = Mathf.Min(_panels[i].transform.localScale.x, _panels[i].transform.localScale.y);
-                _panels[i].transform.localScale = Vector3.zero;
+                var renderer = renderers[i];
+                var textures = new RenderTexture(MAX_SCREEN_SIZE, MAX_SCREEN_SIZE, 0);
+                _maxScales[i] = Mathf.Min(renderer.transform.localScale.x, renderer.transform.localScale.y);
+
+                renderer.material.mainTexture = textures;
+                renderer.enabled = false;
+                renderer.transform.localScale = Vector3.zero;
+
+                _panels[i] = renderer.gameObject;
             }
             if (ImginLoader != null)
             {
@@ -59,11 +61,13 @@ namespace Chikuwa.Imgin
             }
         }
 
-        public void Blit(Texture source, int index, Material mat)
+        public void ApplyImage(Material material, int index)
         {
             index -= (int)Offset;
-            if (index < 0 || index >= _textures.Length) return;
-            VRCGraphics.Blit(source, _textures[index], mat);
+            if (index < 0 || index >= _panels.Length) return;
+            var renderer = _panels[index].GetComponent<MeshRenderer>();
+            VRCGraphics.Blit(material.mainTexture, (RenderTexture)renderer.material.mainTexture, material);
+            renderer.enabled = true;
         }
 
 #if !COMPILER_UDONSHARP && UNITY_EDITOR

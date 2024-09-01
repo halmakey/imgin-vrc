@@ -5,6 +5,7 @@ using VRC.SDKBase;
 using VRC.SDK3.Video.Components.AVPro;
 using System;
 using VRC.SDK3.StringLoading;
+using VRC.Udon.Common.Enums;
 using VRC.Udon.Common.Interfaces;
 using VRC.SDK3.Data;
 
@@ -13,8 +14,9 @@ namespace Chikuwa.Imgin
     public class ImginLoader : UdonSharpBehaviour
     {
         readonly int MAX_SCREEN_SIZE = 1280;
-        readonly float TIME_OFFSET = -0.05f;
+        readonly int READ_DELAY_COUNT = 1;
         readonly float FRAMERATE = 4f;
+        readonly int PADDING_FRAMES = 4;
         public MeshRenderer BackScreen;
         public VRCUrl VideoURL;
         public VRCUrl JSONURL;
@@ -25,6 +27,7 @@ namespace Chikuwa.Imgin
         private RenderTexture _backScreen;
         private ImginBoard[] _boards = Array.Empty<ImginBoard>();
         private int _lastReadIndex;
+        private int _updateCount;
 
         void Start()
         {
@@ -51,14 +54,8 @@ namespace Chikuwa.Imgin
             _boards = ArrayUtils.Append(_boards, board);
         }
 
-        public override void OnVideoStart()
-        {
-            Debug.Log("Load started.");
-            _lastReadIndex = -1;
-        }
         public override void OnVideoEnd()
         {
-            Debug.Log("Load completed.");
             gameObject.SetActive(false);
         }
 
@@ -94,15 +91,27 @@ namespace Chikuwa.Imgin
                 return;
             }
 
-            var index = (int)Math.Floor((_backPlayer.GetTime() + TIME_OFFSET) * FRAMERATE);
-            if (index != _lastReadIndex)
+            var index = (int)Math.Floor(_backPlayer.GetTime() * FRAMERATE) - PADDING_FRAMES;
+            if (index < 0)
+            {
+                return;
+            }
+            if (index == _lastReadIndex)
+            {
+                _updateCount++;
+            }
+            else
             {
                 _lastReadIndex = index;
-                var source = BackScreen.material.mainTexture;
+                _updateCount = 0;
+            }
+
+            if (_lastReadIndex == index && _updateCount == READ_DELAY_COUNT)
+            {
                 var material = BackScreen.material;
                 foreach (var board in _boards)
                 {
-                    board.Blit(source, index, material);
+                    board.ApplyImage(material, index);
                 }
             }
         }
