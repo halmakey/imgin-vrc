@@ -6,11 +6,9 @@
     }
     SubShader
     {
-        Tags {
-            "RenderType"="Opaque"
-            "ForceNoShadowCasting" = "True"
-        }
-        
+        Lighting Off
+        Blend One Zero
+
         Pass {
             CGPROGRAM
             #pragma vertex vert
@@ -42,9 +40,7 @@
             }
             fixed4 frag (v2f i) : SV_Target
             {
-                fixed4 col = tex2D(_MainTex, i.uv);
-                col.rgb = pow(col.rgb, 2.2);
-                return col;
+                return tex2D(_MainTex, i.uv);
             }
             ENDCG
         }

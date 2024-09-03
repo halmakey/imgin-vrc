@@ -5,46 +5,48 @@ using VRC.SDKBase;
 using VRC.SDK3.Video.Components.AVPro;
 using System;
 using VRC.SDK3.StringLoading;
+using VRC.Udon.Common.Enums;
 using VRC.Udon.Common.Interfaces;
 using VRC.SDK3.Data;
+using VRC.SDK3.Video.Components;
 
 namespace Chikuwa.Imgin
 {
     public class ImginLoader : UdonSharpBehaviour
     {
-        readonly int MAX_SCREEN_SIZE = 1280;
-        readonly float READ_TIME_OFFSET = 0.05f;
-        readonly float FRAMERATE = 4f;
+        readonly float FRAMERATE = 2f;
         readonly int PADDING_FRAMES = 4;
-        public MeshRenderer BackScreen;
-        public VRCUrl VideoURL;
-        public VRCUrl JSONURL;
+        readonly float READ_OFFSET = 0.05f;
 
-        public float DelaySeconds;
+        [SerializeField]
+        private RenderTexture _backScreenTexture;
+        [SerializeField]
+        private VRCUrl _videoURL;
+        [SerializeField]
+        public VRCUrl _jsonURL;
+        [SerializeField]
+        private float _delaySeconds;
 
-        private VRCAVProVideoPlayer _backPlayer;
-        private RenderTexture _backScreen;
+        private VRCUnityVideoPlayer _backPlayer;
         private ImginBoard[] _boards = Array.Empty<ImginBoard>();
         private int _lastReadIndex;
+        private DataList _jsonData;
 
         void Start()
         {
-            _backPlayer = GetComponent<VRCAVProVideoPlayer>();
-            _backScreen = new RenderTexture(MAX_SCREEN_SIZE, MAX_SCREEN_SIZE, 0);
-
+            _backPlayer = GetComponent<VRCUnityVideoPlayer>();
             _backPlayer.Stop();
             _backPlayer.EnableAutomaticResync = false;
             _backPlayer.Loop = false;
-            BackScreen.material.mainTexture = _backScreen;
 
-            SendCustomEventDelayedSeconds("StartLoad", DelaySeconds);
+            SendCustomEventDelayedSeconds("StartLoad", _delaySeconds);
         }
 
         public void StartLoad()
         {
             _lastReadIndex = -1;
-            _backPlayer.PlayURL(VideoURL);
-            VRCStringDownloader.LoadUrl(JSONURL, (IUdonEventReceiver)this);
+            _backPlayer.LoadURL(_videoURL);
+            VRCStringDownloader.LoadUrl(_jsonURL, (IUdonEventReceiver)this);
         }
 
         public void AddBoard(ImginBoard board)
@@ -60,26 +62,36 @@ namespace Chikuwa.Imgin
         public override void OnStringLoadSuccess(IVRCStringDownload result)
         {
             VRCJson.TryDeserializeFromJson(result.Result, out DataToken images);
+
             if (images.TokenType != TokenType.DataList)
             {
                 Debug.LogError("Invalid JSON format.");
                 return;
             }
-            float[] ratios = new float[images.DataList.Count];
-            for (int i = 0; i < images.DataList.Count; i++)
-            {
-                var image = images.DataList[i].DataDictionary;
-                ratios[i] = (float)(image["height"].Double / image["width"].Double);
-            }
-            foreach (var board in _boards)
-            {
-                board.ApplyAspectRatios(ratios);
-            }
+
+            _jsonData = images.DataList;
+
+            PlayIfReady();
         }
 
         public override void OnStringLoadError(IVRCStringDownload result)
         {
             Debug.LogError($"Error loading string: {result.ErrorCode} - {result.Error}");
+        }
+
+        public override void OnVideoReady()
+        {
+            PlayIfReady();
+        }
+
+        void PlayIfReady()
+        {
+            if (_jsonData == null || !_backPlayer.IsReady)
+            {
+                return;
+            }
+
+            _backPlayer.Play();
         }
 
         void LateUpdate()
@@ -89,15 +101,24 @@ namespace Chikuwa.Imgin
                 return;
             }
 
-            var index = (int)Math.Floor((_backPlayer.GetTime() - READ_TIME_OFFSET) * FRAMERATE) - PADDING_FRAMES;
-            if (index >= 0 && _lastReadIndex != index)
+            var index = (int)Math.Floor(_backPlayer.GetTime() * FRAMERATE) - PADDING_FRAMES;
+            if (index >= 0 && _lastReadIndex != index && index < _jsonData.Count)
             {
                 _lastReadIndex = index;
-                var material = BackScreen.material;
-                foreach (var board in _boards)
-                {
-                    board.ApplyImage(material, index);
-                }
+
+                SendCustomEventDelayedSeconds("ReadFrame", READ_OFFSET, EventTiming.LateUpdate);
+            }
+        }
+
+        public void ReadFrame()
+        {
+            var index = _lastReadIndex;
+            var item = _jsonData[index].DataDictionary;
+            var ratio = (float)(item["height"].Double / item["width"].Double);
+
+            foreach (var board in _boards)
+            {
+                board.ApplyImage(_backScreenTexture, index, ratio);
             }
         }
     }
