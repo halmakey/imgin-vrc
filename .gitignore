@@ -60,3 +60,6 @@ sysinfo.txt
 crashlytics-build.properties
 
 .idea
+
+# Udon
+/Assets/SerializedUdonPrograms*
