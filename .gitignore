@@ -63,3 +63,4 @@ crashlytics-build.properties
 
 # Udon
 /Assets/SerializedUdonPrograms*
+/Assets/UdonSharp/UtilityScripts*
