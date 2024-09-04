@@ -19,13 +19,13 @@ namespace Chikuwa.Imgin
         readonly float READ_OFFSET = 0.05f;
 
         [SerializeField]
-        private RenderTexture _backScreenTexture;
-        [SerializeField]
         private VRCUrl _videoURL;
         [SerializeField]
         public VRCUrl _jsonURL;
         [SerializeField]
         private float _delaySeconds;
+        private Renderer _backScreenRenderer;
+        private MaterialPropertyBlock _backScreenPropertyBlock;
 
         private VRCUnityVideoPlayer _backPlayer;
         private ImginBoard[] _boards = Array.Empty<ImginBoard>();
@@ -38,6 +38,9 @@ namespace Chikuwa.Imgin
             _backPlayer.Stop();
             _backPlayer.EnableAutomaticResync = false;
             _backPlayer.Loop = false;
+            
+            _backScreenRenderer = GetComponent<MeshRenderer>();
+            _backScreenPropertyBlock = new MaterialPropertyBlock();
 
             SendCustomEventDelayedSeconds("StartLoad", _delaySeconds);
         }
@@ -51,7 +54,10 @@ namespace Chikuwa.Imgin
 
         public void AddBoard(ImginBoard board)
         {
-            _boards = ArrayUtils.Append(_boards, board);
+            var prev = _boards;
+            _boards = new ImginBoard[prev.Length + 1];
+            Array.Copy(prev, _boards, prev.Length);
+            _boards[prev.Length] = board;
         }
 
         public override void OnVideoEnd()
@@ -116,9 +122,13 @@ namespace Chikuwa.Imgin
             var item = _jsonData[index].DataDictionary;
             var ratio = (float)(item["height"].Double / item["width"].Double);
 
+            _backScreenRenderer.GetPropertyBlock(_backScreenPropertyBlock);
+
+            var texture = _backScreenPropertyBlock.GetTexture("_MainTex");
+
             foreach (var board in _boards)
             {
-                board.ApplyImage(_backScreenTexture, index, ratio);
+                board.ApplyImage(texture, index, ratio);
             }
         }
     }
