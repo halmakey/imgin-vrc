@@ -1,18 +1,21 @@
-# Imgin
+# imgin-vrc
 
 ## 概要
 
-ImginはVRChatのワールド上で任意の画像を展示することができるギミックです。
+ImginはVRChatのワールド上で任意の画像を展示することができるクライアントサーバシステムです。
 
-展示する画像は `imgin-web` によってWeb上から配信されるので、ワールドの容量を圧迫せず、展示作品を更新する際にワールドの再アップロードを必要としません。
+Imginは次のリポジトリで構成されます。
 
-## 環境
+* imgin-web - ウェブ上で展示する画像をアップロードしてVRChat向けに配信する
+* imgin-vrc - ウェブから配信された画像をVRChatのワールドに展開する
+
+## 動作環境
 
 * VRChat
 * VRChat Creator Companion (VCC)
 * Unity 2022.3.22f1
 * Visual Studio Code
 
-## 使い方
+## セットアップ
 
-T.B.D.
+Wikiを参照
