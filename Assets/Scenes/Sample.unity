@@ -2213,7 +2213,7 @@ MonoBehaviour:
   targetMaterialProperty: _MainTex
   aspectRatio: 5
   targetAudioSources: []
-  maximumResolution: 1280
+  maximumResolution: 2048
 --- !u!23 &720053669
 MeshRenderer:
   m_ObjectHideFlags: 0

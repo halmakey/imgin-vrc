@@ -9,7 +9,7 @@ namespace Chikuwa.Imgin
 {
     public class ImginBoard : UdonSharpBehaviour
     {
-        readonly int MAX_SCREEN_SIZE = 1280;
+        readonly int MAX_SCREEN_SIZE = 2048;
         public ImginLoader ImginLoader;
         public uint Offset;
 
