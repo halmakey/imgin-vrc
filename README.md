@@ -18,4 +18,4 @@ Imginは次のリポジトリで構成されます。
 
 ## セットアップ
 
-Wikiを参照
+[Wiki](https://github.com/halmakey/imgin-vrc/wiki) を参照
