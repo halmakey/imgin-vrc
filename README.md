@@ -6,8 +6,8 @@ ImginはVRChatのワールド上で任意の画像を展示することができ
 
 Imginは次のリポジトリで構成されます。
 
-* imgin-web - ウェブ上で展示する画像をアップロードしてVRChat向けに配信する
-* imgin-vrc - ウェブから配信された画像をVRChatのワールドに展開する
+* [imgin-web](https://github.com/halmakey/imgin-web) - ウェブ上で展示する画像をアップロードしてVRChat向けに配信する
+* [imgin-vrc](https://github.com/halmakey/imgin-vrc) - ウェブから配信された画像をVRChatのワールドに展開する
 
 ## 動作環境
 
@@ -18,4 +18,4 @@ Imginは次のリポジトリで構成されます。
 
 ## セットアップ
 
-Wikiを参照
+[Wiki](https://github.com/halmakey/imgin-vrc/wiki) を参照
