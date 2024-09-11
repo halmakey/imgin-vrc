@@ -16,6 +16,11 @@ Imginは次のリポジトリで構成されます。
 * Unity 2022.3.22f1
 * Visual Studio Code
 
+## ご注意
+
+本リポジトリはハッカソンで制作して発表した成果物です。
+今後、機能拡張等を行う予定はありません。
+
 ## セットアップ
 
 [Wiki](https://github.com/halmakey/imgin-vrc/wiki) を参照
